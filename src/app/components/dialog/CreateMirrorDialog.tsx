@@ -8,8 +8,11 @@ import {
   TextInput,
 } from '@primer/react'
 import { Dialog } from '@primer/react/drafts'
+import { mirrorNameSchema } from 'server/repos/schema'
 
 import { useState } from 'react'
+
+const DEFAULT_REPO_NAME = 'repository-name'
 
 interface CreateMirrorDialogProps {
   orgLogin: string
@@ -29,11 +32,18 @@ export const CreateMirrorDialog = ({
   createMirror,
 }: CreateMirrorDialogProps) => {
   // set to default value of 'repository-name' for display purposes
-  const [repoName, setRepoName] = useState('repository-name')
+  const [repoName, setRepoName] = useState(DEFAULT_REPO_NAME)
 
   if (!isOpen) {
     return null
   }
+
+  const hasUserInput = repoName !== DEFAULT_REPO_NAME && repoName !== ''
+  const validation = mirrorNameSchema.safeParse(repoName)
+  const validationError =
+    hasUserInput && !validation.success
+      ? validation.error.issues[0].message
+      : null
 
   return (
     <Dialog
@@ -44,7 +54,7 @@ export const CreateMirrorDialog = ({
           content: 'Cancel',
           onClick: () => {
             closeDialog()
-            setRepoName('repository-name')
+            setRepoName(DEFAULT_REPO_NAME)
           },
         },
         {
@@ -52,14 +62,14 @@ export const CreateMirrorDialog = ({
           variant: 'primary',
           onClick: () => {
             createMirror({ repoName, branchName: repoName })
-            setRepoName('repository-name')
+            setRepoName(DEFAULT_REPO_NAME)
           },
-          disabled: repoName === 'repository-name' || repoName === '',
+          disabled: !hasUserInput || !validation.success,
         },
       ]}
       onClose={() => {
         closeDialog()
-        setRepoName('repository-name')
+        setRepoName(DEFAULT_REPO_NAME)
       }}
       width="large"
     >
@@ -71,17 +81,24 @@ export const CreateMirrorDialog = ({
             block
             placeholder="e.g. repository-name"
             maxLength={100}
+            validationStatus={validationError ? 'error' : undefined}
           />
-          <FormControl.Caption>
-            This is a private mirror of{' '}
-            <Link
-              href={`https://github.com/${forkParentOwnerLogin}/${forkParentName}`}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              {forkParentOwnerLogin}/{forkParentName}
-            </Link>
-          </FormControl.Caption>
+          {validationError ? (
+            <FormControl.Validation variant="error">
+              {validationError}
+            </FormControl.Validation>
+          ) : (
+            <FormControl.Caption>
+              This is a private mirror of{' '}
+              <Link
+                href={`https://github.com/${forkParentOwnerLogin}/${forkParentName}`}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                {forkParentOwnerLogin}/{forkParentName}
+              </Link>
+            </FormControl.Caption>
+          )}
         </FormControl>
         <FormControl>
           <FormControl.Label>Mirror location</FormControl.Label>

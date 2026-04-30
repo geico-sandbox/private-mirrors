@@ -1,11 +1,26 @@
 import { z } from 'zod'
 
+export const mirrorNameSchema = z
+  .string()
+  .min(1, 'Mirror name is required')
+  .max(100, 'Mirror name cannot exceed 100 characters')
+  .regex(
+    /^[A-Za-z0-9._-]+$/,
+    'Only letters, numbers, hyphens, underscores, and periods are allowed',
+  )
+  .refine((name) => name !== '.' && name !== '..', {
+    message: 'Mirror name cannot be "." or ".."',
+  })
+  .refine((name) => !name.toLowerCase().endsWith('.git'), {
+    message: 'Mirror name cannot end with ".git"',
+  })
+
 export const CreateMirrorSchema = z.object({
   orgId: z.string(),
   forkRepoOwner: z.string(),
   forkRepoName: z.string(),
   forkId: z.string(),
-  newRepoName: z.string().max(100),
+  newRepoName: mirrorNameSchema,
   newBranchName: z.string(),
 })
 
@@ -17,7 +32,7 @@ export const ListMirrorsSchema = z.object({
 export const EditMirrorSchema = z.object({
   orgId: z.string(),
   mirrorName: z.string(),
-  newMirrorName: z.string().max(100),
+  newMirrorName: mirrorNameSchema,
 })
 
 export const DeleteMirrorSchema = z.object({

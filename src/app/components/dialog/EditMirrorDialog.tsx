@@ -8,6 +8,7 @@ import {
   TextInput,
 } from '@primer/react'
 import { Dialog } from '@primer/react/drafts'
+import { mirrorNameSchema } from 'server/repos/schema'
 
 import { useEffect, useState } from 'react'
 
@@ -47,6 +48,13 @@ export const EditMirrorDialog = ({
     return null
   }
 
+  const hasUserInput = newMirrorName !== mirrorName && newMirrorName !== ''
+  const validation = mirrorNameSchema.safeParse(newMirrorName)
+  const validationError =
+    hasUserInput && !validation.success
+      ? validation.error.issues[0].message
+      : null
+
   return (
     <Dialog
       title="Edit mirror"
@@ -70,7 +78,7 @@ export const EditMirrorDialog = ({
             })
             setNewMirrorName(mirrorName)
           },
-          disabled: newMirrorName === mirrorName || newMirrorName === '',
+          disabled: !hasUserInput || !validation.success,
         },
       ]}
       onClose={() => {
@@ -87,17 +95,24 @@ export const EditMirrorDialog = ({
             block
             placeholder={mirrorName}
             maxLength={100}
+            validationStatus={validationError ? 'error' : undefined}
           />
-          <FormControl.Caption>
-            This is a private mirror of{' '}
-            <Link
-              href={`https://github.com/${forkParentOwnerLogin}/${forkParentName}`}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              {forkParentOwnerLogin}/{forkParentName}
-            </Link>
-          </FormControl.Caption>
+          {validationError ? (
+            <FormControl.Validation variant="error">
+              {validationError}
+            </FormControl.Validation>
+          ) : (
+            <FormControl.Caption>
+              This is a private mirror of{' '}
+              <Link
+                href={`https://github.com/${forkParentOwnerLogin}/${forkParentName}`}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                {forkParentOwnerLogin}/{forkParentName}
+              </Link>
+            </FormControl.Caption>
+          )}
         </FormControl>
         <FormControl>
           <FormControl.Label>Mirror location</FormControl.Label>

@@ -9,27 +9,32 @@ process.env.PRIVATE_KEY = fs.readFileSync(
 )
 
 import * as config from '../../src/bot/config'
-import * as auth from '../../src/utils/auth'
 import configRouter from '../../src/server/config/router'
 import { Octomock } from '../octomock'
 import { createTestContext } from '../utils/auth'
 
 const om = new Octomock()
 
-jest.mock('../../src/bot/config')
+vi.mock('../../src/bot/config')
 
-jest.spyOn(auth, 'checkGitHubAuth').mockResolvedValue()
+vi.mock('../../src/utils/auth', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/utils/auth')>()
+  return {
+    ...actual,
+    checkGitHubAuth: vi.fn().mockResolvedValue(undefined),
+  }
+})
 
 describe('Config router', () => {
   beforeEach(() => {
     om.resetMocks()
-    jest.resetAllMocks()
+    vi.resetAllMocks()
   })
 
   it('should fetch the values from the config', async () => {
     const caller = configRouter.createCaller(createTestContext())
 
-    const configSpy = jest.spyOn(config, 'getConfig').mockResolvedValue({
+    const configSpy = vi.spyOn(config, 'getConfig').mockResolvedValue({
       publicOrg: 'github',
       privateOrg: 'github-test',
     })

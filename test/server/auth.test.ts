@@ -4,14 +4,14 @@ import { createTestContext } from '../utils/auth'
 import { t } from '../../src/utils/trpc-server'
 const om = new Octomock()
 
-jest.mock('../../src/bot/octokit', () => ({
+vi.mock('../../src/bot/octokit', () => ({
   personalOctokit: () => om.getOctokitImplementation(),
 }))
 
 describe('Git router', () => {
   beforeEach(() => {
     om.resetMocks()
-    jest.resetAllMocks()
+    vi.resetAllMocks()
   })
 
   it('should allow users that are authenticated', async () => {

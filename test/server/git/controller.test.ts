@@ -2,8 +2,10 @@ import { syncReposHandler } from '../../../src/server/git/controller'
 import * as auth from '../../../src/utils/auth'
 import * as dir from '../../../src/utils/dir'
 import simpleGit from 'simple-git'
+import type { Mock } from 'vitest'
+import type { SyncReposSchema } from '../../../src/server/git/schema'
 
-const getRefSpy = jest.fn()
+const getRefSpy = vi.fn()
 
 const fakeOctokitData = {
   accessToken: 'fake-token',
@@ -13,7 +15,7 @@ const fakeOctokitData = {
         getRef: getRefSpy,
       },
       repos: {
-        get: jest.fn().mockResolvedValue({
+        get: vi.fn().mockResolvedValue({
           data: {
             owner: {
               login: 'login',
@@ -25,23 +27,23 @@ const fakeOctokitData = {
     },
   },
   installationId: 'fake-installation-id',
-}
+} as unknown as SyncReposSchema['source']['octokit']
 
-jest.mock('simple-git')
-const simpleGitMock = simpleGit as jest.Mock
+vi.mock('simple-git')
+const simpleGitMock = simpleGit as unknown as Mock
 const gitMock = {
-  addRemote: jest.fn(),
-  branch: jest.fn().mockResolvedValue({
+  addRemote: vi.fn(),
+  branch: vi.fn().mockResolvedValue({
     all: [],
   }),
-  checkoutBranch: jest.fn(),
-  fetch: jest.fn().mockResolvedValueOnce({}),
-  init: jest.fn(),
-  merge: jest.fn().mockResolvedValueOnce({}),
-  push: jest.fn().mockResolvedValueOnce({}),
-  raw: jest.fn(),
-  reset: jest.fn().mockResolvedValueOnce(''),
-  show: jest.fn(),
+  checkoutBranch: vi.fn(),
+  fetch: vi.fn().mockResolvedValueOnce({}),
+  init: vi.fn(),
+  merge: vi.fn().mockResolvedValueOnce({}),
+  push: vi.fn().mockResolvedValueOnce({}),
+  raw: vi.fn(),
+  reset: vi.fn().mockResolvedValueOnce(''),
+  show: vi.fn(),
 }
 simpleGitMock.mockReturnValue(gitMock)
 
@@ -72,15 +74,14 @@ describe('Git controller', () => {
         },
       })
 
-    jest
-      .spyOn(auth, 'generateAuthUrl')
+    vi.spyOn(auth, 'generateAuthUrl')
       .mockReturnValueOnce(
         'https://x-access-token:contributionAccessToken@github.com/sourceOwner/sourceRepo',
       )
       .mockReturnValueOnce(
         'https://x-access-token:privateAccessToken@github.com/destinationOwner/destinationRepo',
       )
-    jest.spyOn(dir, 'temporaryDirectory').mockReturnValue('directory')
+    vi.spyOn(dir, 'temporaryDirectory').mockReturnValue('directory')
 
     gitMock.raw.mockImplementation(() => {
       throw new Error('Not an ancestor')
@@ -136,15 +137,14 @@ describe('Git controller', () => {
         },
       })
 
-    jest
-      .spyOn(auth, 'generateAuthUrl')
+    vi.spyOn(auth, 'generateAuthUrl')
       .mockReturnValueOnce(
         'https://x-access-token:contributionAccessToken@github.com/sourceOwner/sourceRepo',
       )
       .mockReturnValueOnce(
         'https://x-access-token:privateAccessToken@github.com/destinationOwner/destinationRepo',
       )
-    jest.spyOn(dir, 'temporaryDirectory').mockReturnValue('directory')
+    vi.spyOn(dir, 'temporaryDirectory').mockReturnValue('directory')
 
     gitMock.raw.mockResolvedValueOnce('')
 
@@ -208,15 +208,14 @@ describe('Git controller', () => {
         },
       })
 
-    jest
-      .spyOn(auth, 'generateAuthUrl')
+    vi.spyOn(auth, 'generateAuthUrl')
       .mockReturnValueOnce(
         'https://x-access-token:contributionAccessToken@github.com/sourceOwner/sourceRepo',
       )
       .mockReturnValueOnce(
         'https://x-access-token:privateAccessToken@github.com/destinationOwner/destinationRepo',
       )
-    jest.spyOn(dir, 'temporaryDirectory').mockReturnValue('directory')
+    vi.spyOn(dir, 'temporaryDirectory').mockReturnValue('directory')
 
     gitMock.raw.mockResolvedValueOnce('')
     gitMock.show.mockResolvedValueOnce('sha1')
@@ -287,15 +286,14 @@ describe('Git controller', () => {
         },
       })
 
-    jest
-      .spyOn(auth, 'generateAuthUrl')
+    vi.spyOn(auth, 'generateAuthUrl')
       .mockReturnValueOnce(
         'https://x-access-token:contributionAccessToken@github.com/sourceOwner/sourceRepo',
       )
       .mockReturnValueOnce(
         'https://x-access-token:privateAccessToken@github.com/destinationOwner/destinationRepo',
       )
-    jest.spyOn(dir, 'temporaryDirectory').mockReturnValue('directory')
+    vi.spyOn(dir, 'temporaryDirectory').mockReturnValue('directory')
 
     gitMock.raw.mockResolvedValue('')
     gitMock.show.mockResolvedValueOnce('sha1 sha2')
@@ -354,7 +352,7 @@ describe('Git controller', () => {
     expect(gitMock.push).toHaveBeenCalledWith(['--force'])
   })
 
-  it('should be syncable, have the environment flag set to true, be a merge commit, and be a merge to main branch, ', async () => {
+  it('should be syncable, have the environment flag set to true, be a merge commit, and be a merge to main branch,', async () => {
     getRefSpy
       .mockResolvedValueOnce({
         data: {
@@ -371,15 +369,14 @@ describe('Git controller', () => {
         },
       })
 
-    jest
-      .spyOn(auth, 'generateAuthUrl')
+    vi.spyOn(auth, 'generateAuthUrl')
       .mockReturnValueOnce(
         'https://x-access-token:contributionAccessToken@github.com/sourceOwner/sourceRepo',
       )
       .mockReturnValueOnce(
         'https://x-access-token:privateAccessToken@github.com/destinationOwner/destinationRepo',
       )
-    jest.spyOn(dir, 'temporaryDirectory').mockReturnValue('directory')
+    vi.spyOn(dir, 'temporaryDirectory').mockReturnValue('directory')
 
     gitMock.raw
       .mockResolvedValueOnce('')

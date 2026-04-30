@@ -2,7 +2,7 @@ import * as config from '../src/bot/config'
 import { Octomock } from './octomock'
 const om = new Octomock()
 
-jest.mock('../src/bot/octokit', () => ({
+vi.mock('../src/bot/octokit', () => ({
   generateAppAccessToken: async () => 'fake-token',
   appOctokit: () => om.getOctokitImplementation(),
   installationOctokit: () => om.getOctokitImplementation(),
@@ -10,7 +10,7 @@ jest.mock('../src/bot/octokit', () => ({
 
 describe('PMA Config', () => {
   beforeEach(() => {
-    jest.resetAllMocks()
+    vi.resetAllMocks()
     delete process.env.PUBLIC_ORG
     delete process.env.PRIVATE_ORG
   })

@@ -1,17 +1,17 @@
 // TODO: We should only mock out clone and push but keep the rest of the options
 // the same. This will allow us to test the actual git commands.
 const stubbedGit = {
-  clone: jest.fn(),
-  push: jest.fn(),
-  addRemote: jest.fn(),
-  fetch: jest.fn(),
-  checkoutBranch: jest.fn(),
-  mergeFromTo: jest.fn(),
+  clone: vi.fn(),
+  push: vi.fn(),
+  addRemote: vi.fn(),
+  fetch: vi.fn(),
+  checkoutBranch: vi.fn(),
+  mergeFromTo: vi.fn(),
 }
 
-jest.mock('simple-git', () => {
-  return () => stubbedGit
-})
+vi.mock('simple-git', () => ({
+  default: () => stubbedGit,
+}))
 
 import * as config from '../../src/bot/config'
 import * as auth from '../../src/utils/auth'
@@ -22,8 +22,8 @@ import { t } from '../../src/utils/trpc-server'
 const om = new Octomock()
 const UNMODIFIED_ENV = process.env
 
-jest.mock('../../src/bot/config')
-jest.mock('../../src/bot/octokit', () => ({
+vi.mock('../../src/bot/config')
+vi.mock('../../src/bot/octokit', () => ({
   generateAppAccessToken: async () => 'fake-token',
   appOctokit: () => om.getOctokitImplementation(),
   installationOctokit: () => om.getOctokitImplementation(),
@@ -40,7 +40,7 @@ jest.mock('../../src/bot/octokit', () => ({
     },
   }),
 }))
-jest.mock('../../src/utils/auth')
+vi.mock('../../src/utils/auth')
 
 const fakeForkRepo = {
   status: 200,
@@ -99,19 +99,19 @@ const fakeOrgCustomProperties = {
   ],
 }
 
-jest.spyOn(auth, 'checkGitHubAuth').mockResolvedValue()
+vi.spyOn(auth, 'checkGitHubAuth').mockResolvedValue()
 
 describe('Repos router', () => {
   beforeEach(() => {
     om.resetMocks()
-    jest.resetAllMocks()
+    vi.resetAllMocks()
     process.env = { ...UNMODIFIED_ENV }
   })
 
   it('should create a mirror when repo does not exist', async () => {
     const caller = t.createCallerFactory(reposRouter)(createTestContext())
 
-    const configSpy = jest.spyOn(config, 'getConfig').mockResolvedValue({
+    const configSpy = vi.spyOn(config, 'getConfig').mockResolvedValue({
       publicOrg: 'github',
       privateOrg: 'github-test',
     })
@@ -156,7 +156,7 @@ describe('Repos router', () => {
   it('should throw an error when repo already exists', async () => {
     const caller = t.createCallerFactory(reposRouter)(createTestContext())
 
-    const configSpy = jest.spyOn(config, 'getConfig').mockResolvedValue({
+    const configSpy = vi.spyOn(config, 'getConfig').mockResolvedValue({
       publicOrg: 'github',
       privateOrg: 'github-test',
     })
@@ -190,7 +190,7 @@ describe('Repos router', () => {
   it('should cleanup repos when there is an error', async () => {
     const caller = t.createCallerFactory(reposRouter)(createTestContext())
 
-    const configSpy = jest.spyOn(config, 'getConfig').mockResolvedValue({
+    const configSpy = vi.spyOn(config, 'getConfig').mockResolvedValue({
       publicOrg: 'github',
       privateOrg: 'github',
     })
@@ -239,7 +239,7 @@ describe('Repos router', () => {
   it('dual-org: should cleanup repos when there is an error', async () => {
     const caller = t.createCallerFactory(reposRouter)(createTestContext())
 
-    const configSpy = jest.spyOn(config, 'getConfig').mockResolvedValue({
+    const configSpy = vi.spyOn(config, 'getConfig').mockResolvedValue({
       publicOrg: 'github',
       privateOrg: 'github-test',
     })
@@ -289,7 +289,7 @@ describe('Repos router', () => {
   it('should create an internal repo when the CREATE_MIRRORS_WITH_INTERNAL_VISIBILITY flag is used', async () => {
     const caller = t.createCallerFactory(reposRouter)(createTestContext())
 
-    const configSpy = jest.spyOn(config, 'getConfig').mockResolvedValue({
+    const configSpy = vi.spyOn(config, 'getConfig').mockResolvedValue({
       publicOrg: 'github',
       privateOrg: 'github-test',
     })
@@ -354,7 +354,7 @@ describe('Repos router', () => {
       })
       .catch((error) => {
         expect(error.message).toMatch(
-          /String must contain at most 100 character\(s\)/,
+          /Mirror name cannot exceed 100 characters/,
         )
       })
   })
