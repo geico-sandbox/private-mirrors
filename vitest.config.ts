@@ -4,7 +4,6 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
-    globals: true,
     environment: 'node',
     include: [
       'test/**/*.{test,spec}.{ts,tsx}',
@@ -22,6 +21,18 @@ export default defineConfig({
         '.next/**',
         'build/**',
       ],
+      thresholds: {
+        lines: 45,
+        functions: 35,
+        branches: 35,
+        statements: 45,
+      },
+    },
+    typecheck: {
+      enabled: true,
+      checker: 'tsc',
+      include: ['test/**/*.ts'],
+      tsconfig: './tsconfig.json',
     },
   },
 })
